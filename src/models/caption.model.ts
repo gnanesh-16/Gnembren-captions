@@ -18,7 +18,9 @@ export interface Clip {
   id:string;
   file: File;
   objectUrl: string;
-  duration: number;
+  originalDuration: number;
+  trimStart: number;
+  trimEnd: number;
   // This will be used for the serializable version
   name: string; 
   type: string;
@@ -47,13 +49,34 @@ export interface ProjectSettings {
   karaokeEnabled: boolean;
   karaokeColor: string;
   canvasAspectRatio: '16:9' | '9:16' | '1:1';
+  // New Audio Settings
+  audioEnhancementEnabled: boolean;
+  noiseReductionIntensity: number;
+  eqTreble: number;
+  eqMids: number;
+  eqBass: number;
+  voiceClarity: number;
+  volumeBoost: number;
+  // New Transform Settings
+  scale: number;
+  positionX: number;
+  positionY: number;
+  // New AlphaCheck setting
+  backgroundSoundOff: boolean;
 }
 
 // Represents a full, saveable project
 export interface Project {
   id: string;
   name: string;
-  clips: { id: string; name: string; type: string; duration: number; }[];
+  clips: { 
+    id: string; 
+    name: string; 
+    type: string; 
+    originalDuration: number;
+    trimStart: number;
+    trimEnd: number;
+  }[];
   captions: Caption[];
   settings: ProjectSettings;
   lastModified: number;

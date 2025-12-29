@@ -61,8 +61,10 @@ export interface ProjectSettings {
   scale: number;
   positionX: number;
   positionY: number;
-  // New AlphaCheck setting
-  backgroundSoundOff: boolean;
+  // New Audio & Alpha settings
+  vocalIsolation: boolean;
+  voiceVolume: number;
+  musicVolume: number;
 }
 
 // Represents a full, saveable project

@@ -89,9 +89,14 @@ export class AppComponent implements OnInit {
   positionX = signal<number>(0);
   positionY = signal<number>(0);
   
-  // --- Alpha Check ---
+  // --- Audio & Alpha Check ---
   alphaCheckBg = signal('checkerboard');
-  backgroundSoundOff = signal<boolean>(false);
+  vocalIsolation = signal<boolean>(false);
+  voiceVolume = signal(100);
+  musicVolume = signal(100);
+  private preIsolationMusicVolume = 100;
+  private preMuteVoiceVolume = 100;
+  private preMuteMusicVolume = 100;
 
   activeWordIndex = signal<number | null>(null);
 
@@ -157,9 +162,9 @@ export class AppComponent implements OnInit {
     effect(() => {
         const player = this.videoPlayer();
         if (player) {
-            // This is a simulation. Real vocal isolation is more complex.
-            // We lower the volume to help focus on spoken words.
-            player.nativeElement.volume = this.backgroundSoundOff() ? 0.4 : 1.0;
+            // Since we cannot separate audio tracks, the main video volume is controlled by the "Voice" track.
+            // The "Music" track is a simulation for UI/UX purposes.
+            player.nativeElement.volume = this.voiceVolume() / 100;
         }
     });
   }
@@ -238,15 +243,19 @@ export class AppComponent implements OnInit {
   
   resetEditorState() { this.activeProjectId.set(null); this.clips.set([]); this.captions.set([]); this.currentCaption.set(null); this.error.set(null); this.selectedCaptionId.set(null); this.videoInfo.set(null); this.activeClipIndex.set(0); this.resetStyles(); const video = this.videoPlayer()?.nativeElement; if(video) { video.src = ''; video.ontimeupdate = null; } }
   
-  getCurrentSettings(): ProjectSettings { return { fontFamily: this.selectedFont(), fontSize: this.fontSize(), textColor: this.textColor(), fontWeight: this.fontWeight(), fontStyle: this.fontStyle(), textDecoration: this.textDecoration(), textTransform: this.textTransform(), letterSpacing: this.letterSpacing(), lineHeight: this.lineHeight(), textAlign: this.textAlign(), captionMaxWidth: this.captionMaxWidth(), textShadowEnabled: this.textShadowEnabled(), textBackgroundEnabled: this.textBackgroundEnabled(), textBackgroundColor: this.textBackgroundColor(), textStrokeEnabled: this.textStrokeEnabled(), textStrokeColor: this.textStrokeColor(), textStrokeWidth: this.textStrokeWidth(), captionAnimation: this.captionAnimation(), karaokeEnabled: this.karaokeEnabled(), karaokeColor: this.karaokeColor(), canvasAspectRatio: this.canvasAspectRatio(), audioEnhancementEnabled: this.audioEnhancementEnabled(), noiseReductionIntensity: this.noiseReductionIntensity(), eqTreble: this.eqTreble(), eqMids: this.eqMids(), eqBass: this.eqBass(), voiceClarity: this.voiceClarity(), volumeBoost: this.volumeBoost(), scale: this.scale(), positionX: this.positionX(), positionY: this.positionY(), backgroundSoundOff: this.backgroundSoundOff() }; }
+  getCurrentSettings(): ProjectSettings { return { fontFamily: this.selectedFont(), fontSize: this.fontSize(), textColor: this.textColor(), fontWeight: this.fontWeight(), fontStyle: this.fontStyle(), textDecoration: this.textDecoration(), textTransform: this.textTransform(), letterSpacing: this.letterSpacing(), lineHeight: this.lineHeight(), textAlign: this.textAlign(), captionMaxWidth: this.captionMaxWidth(), textShadowEnabled: this.textShadowEnabled(), textBackgroundEnabled: this.textBackgroundEnabled(), textBackgroundColor: this.textBackgroundColor(), textStrokeEnabled: this.textStrokeEnabled(), textStrokeColor: this.textStrokeColor(), textStrokeWidth: this.textStrokeWidth(), captionAnimation: this.captionAnimation(), karaokeEnabled: this.karaokeEnabled(), karaokeColor: this.karaokeColor(), canvasAspectRatio: this.canvasAspectRatio(), audioEnhancementEnabled: this.audioEnhancementEnabled(), noiseReductionIntensity: this.noiseReductionIntensity(), eqTreble: this.eqTreble(), eqMids: this.eqMids(), eqBass: this.eqBass(), voiceClarity: this.voiceClarity(), volumeBoost: this.volumeBoost(), scale: this.scale(), positionX: this.positionX(), positionY: this.positionY(), vocalIsolation: this.vocalIsolation(), voiceVolume: this.voiceVolume(), musicVolume: this.musicVolume() }; }
   
   applySettings(settings: ProjectSettings) { for (const [key, value] of Object.entries(settings)) { if (this.hasOwnProperty(key) && typeof (this as any)[key] === 'function' && (this as any)[key].set) { if(value !== undefined) (this as any)[key].set(value); } } }
 
   applyPreset(preset: StylePreset) { this.applySettings(preset.styles as ProjectSettings); }
   
-  resetStyles() { const defaultSettings: ProjectSettings = { fontFamily: this.fonts()[0].family, fontSize: 36, textColor: '#FFFFFF', fontWeight: 700, fontStyle: 'normal', textDecoration: 'none', textTransform: 'none', letterSpacing: 0, lineHeight: 1.2, textAlign: 'center', captionMaxWidth: 70, textShadowEnabled: true, textBackgroundEnabled: false, textBackgroundColor: 'rgba(0, 0, 0, 0.5)', textStrokeEnabled: false, textStrokeColor: '#000000', textStrokeWidth: 2, captionAnimation: 'fade', karaokeEnabled: true, karaokeColor: '#2563eb', canvasAspectRatio: '16:9', audioEnhancementEnabled: false, noiseReductionIntensity: 0, eqTreble: 0, eqMids: 0, eqBass: 0, voiceClarity: 0, volumeBoost: 0, scale: 1, positionX: 0, positionY: 0, backgroundSoundOff: false }; this.applySettings(defaultSettings); }
+  resetStyles() { const defaultSettings: ProjectSettings = { fontFamily: this.fonts()[0].family, fontSize: 36, textColor: '#FFFFFF', fontWeight: 700, fontStyle: 'normal', textDecoration: 'none', textTransform: 'none', letterSpacing: 0, lineHeight: 1.2, textAlign: 'center', captionMaxWidth: 70, textShadowEnabled: true, textBackgroundEnabled: false, textBackgroundColor: 'rgba(0, 0, 0, 0.5)', textStrokeEnabled: false, textStrokeColor: '#000000', textStrokeWidth: 2, captionAnimation: 'fade', karaokeEnabled: true, karaokeColor: '#2563eb', canvasAspectRatio: '16:9', audioEnhancementEnabled: false, noiseReductionIntensity: 0, eqTreble: 0, eqMids: 0, eqBass: 0, voiceClarity: 0, volumeBoost: 0, scale: 1, positionX: 0, positionY: 0, vocalIsolation: false, voiceVolume: 100, musicVolume: 100 }; this.applySettings(defaultSettings); }
 
   toggleAudioEnhancement() { this.audioEnhancementEnabled.update(v => !v); if (this.audioEnhancementEnabled()) { this.noiseReductionIntensity.set(60); this.voiceClarity.set(10); this.eqMids.set(2); this.eqTreble.set(1); } else { this.noiseReductionIntensity.set(0); this.voiceClarity.set(0); this.eqTreble.set(0); this.eqMids.set(0); this.eqBass.set(0); this.volumeBoost.set(0); } }
+  
+  toggleVocalIsolation() { this.vocalIsolation.update(v => !v); if (this.vocalIsolation()) { this.preIsolationMusicVolume = this.musicVolume(); this.musicVolume.set(0); } else { this.musicVolume.set(this.preIsolationMusicVolume); } }
+  toggleMuteVoice() { if (this.voiceVolume() > 0) { this.preMuteVoiceVolume = this.voiceVolume(); this.voiceVolume.set(0); } else { this.voiceVolume.set(this.preMuteVoiceVolume); } }
+  toggleMuteMusic() { if (this.musicVolume() > 0) { this.preMuteMusicVolume = this.musicVolume(); this.musicVolume.set(0); } else { this.musicVolume.set(this.preMuteMusicVolume); } }
   
   splitClipAtPlayhead() {
     const video = this.videoPlayer()?.nativeElement; const clip = this.activeClip(); const index = this.activeClipIndex(); if(!video || !clip) return;

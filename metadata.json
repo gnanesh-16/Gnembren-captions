@@ -1,0 +1,5 @@
+{
+  "name": "AI Caption Generator",
+  "description": "An application to automatically generate and style video captions using AI. Upload a video, describe its content, and let AI create engaging captions. Customize the font and export your final creation.",
+  "requestFramePermissions": []
+}

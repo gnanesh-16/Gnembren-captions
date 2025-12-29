@@ -85,8 +85,12 @@ export class GeminiService {
       });
 
       const jsonString = response.text;
-      const captionsData = JSON.parse(jsonString) as Omit<Caption, 'clipId'>[];
-      const captions: Caption[] = captionsData.map(c => ({...c, clipId}));
+      const captionsData = JSON.parse(jsonString) as Omit<Caption, 'clipId' | 'id'>[];
+      const captions: Caption[] = captionsData.map(c => ({
+          ...c, 
+          clipId,
+          id: `caption_${Math.random().toString(36).substring(2, 11)}`
+        }));
       return captions.sort((a, b) => a.startTime - b.startTime);
 
     } catch (error) {

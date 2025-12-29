@@ -6,7 +6,7 @@ import { Project } from '../models/caption.model';
   providedIn: 'root',
 })
 export class StorageService {
-  private readonly STORAGE_KEY = 'gnembren_projects';
+  private readonly STORAGE_KEY = 'ai_caption_generator_projects';
 
   getProjects(): Project[] {
     try {

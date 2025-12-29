@@ -47,7 +47,7 @@ export class AppComponent implements OnInit {
   // --- Styling Signals ---
   fonts = signal([ { name: 'Manrope', family: "'Manrope', sans-serif" }, { name: 'Inter', family: "'Inter', sans-serif" }, { name: 'Poppins', family: "'Poppins', sans-serif" }, { name: 'Roboto', family: "'Roboto', sans-serif" }, { name: 'Montserrat', family: "'Montserrat', sans-serif" } ]);
   selectedFont = signal<string>(this.fonts()[0].family);
-  fontSize = signal<number>(48);
+  fontSize = signal<number>(36);
   textColor = signal<string>('#FFFFFF');
   fontWeight = signal<number>(700);
   fontStyle = signal<'normal' | 'italic'>('normal');
@@ -56,7 +56,7 @@ export class AppComponent implements OnInit {
   letterSpacing = signal<number>(0);
   lineHeight = signal<number>(1.2);
   textAlign = signal<'left' | 'center' | 'right'>('center');
-  captionMaxWidth = signal(90);
+  captionMaxWidth = signal(70);
   textShadowEnabled = signal<boolean>(true);
   textBackgroundEnabled = signal<boolean>(false);
   textBackgroundColor = signal<string>('rgba(0, 0, 0, 0.5)');
@@ -73,7 +73,7 @@ export class AppComponent implements OnInit {
   // App State
   isLoading = signal(false);
   error = signal<string | null>(null);
-  activeTab = signal<'captions' | 'style' | 'layout' | 'format' | 'animate'>('captions');
+  activeTab = signal<'captions' | 'style' | 'layout' | 'format' | 'animate'>('style');
   playbackRate = signal(1);
 
   textStrokeStyle = computed(() => {
@@ -276,7 +276,7 @@ export class AppComponent implements OnInit {
 
   applyPreset(preset: StylePreset) { this.applySettings(preset.styles as ProjectSettings); }
   
-  resetStyles() { const defaultSettings: ProjectSettings = { fontFamily: this.fonts()[0].family, fontSize: 48, textColor: '#FFFFFF', fontWeight: 700, fontStyle: 'normal', textDecoration: 'none', textTransform: 'none', letterSpacing: 0, lineHeight: 1.2, textAlign: 'center', captionMaxWidth: 90, textShadowEnabled: true, textBackgroundEnabled: false, textBackgroundColor: 'rgba(0, 0, 0, 0.5)', textStrokeEnabled: false, textStrokeColor: '#000000', textStrokeWidth: 2, captionAnimation: 'fade', karaokeEnabled: true, karaokeColor: '#2563eb', canvasAspectRatio: '16:9' }; this.applySettings(defaultSettings); }
+  resetStyles() { const defaultSettings: ProjectSettings = { fontFamily: this.fonts()[0].family, fontSize: 36, textColor: '#FFFFFF', fontWeight: 700, fontStyle: 'normal', textDecoration: 'none', textTransform: 'none', letterSpacing: 0, lineHeight: 1.2, textAlign: 'center', captionMaxWidth: 70, textShadowEnabled: true, textBackgroundEnabled: false, textBackgroundColor: 'rgba(0, 0, 0, 0.5)', textStrokeEnabled: false, textStrokeColor: '#000000', textStrokeWidth: 2, captionAnimation: 'fade', karaokeEnabled: true, karaokeColor: '#2563eb', canvasAspectRatio: '16:9' }; this.applySettings(defaultSettings); }
   
   setVideoInfo(file: File, duration: number) { const video = document.createElement('video'); video.preload = 'metadata'; video.src = URL.createObjectURL(file); video.onloadedmetadata = () => { const gcd = (a: number, b: number): number => b === 0 ? a : gcd(b, a % b); const r = gcd(video.videoWidth, video.videoHeight); this.videoInfo.set({ name: file.name, resolution: `${video.videoWidth}x${video.videoHeight}`, aspectRatio: `${video.videoWidth/r}:${video.videoHeight/r}`, duration: this.formatDuration(duration), size: this.formatFileSize(file.size) }); URL.revokeObjectURL(video.src); }; }
   

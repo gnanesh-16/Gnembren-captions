@@ -101,6 +101,7 @@ export class AppComponent implements OnInit {
   activeTab = signal<'captions' | 'audio' | 'style' | 'layout' | 'transform' | 'animate' | 'alphacheck'>('style');
   playbackRate = signal(1);
   playheadPosition = signal(0);
+  timelineZoom = signal(1);
 
   // Waveform visualization
   voiceWaveform = signal<number[]>([]);
@@ -153,6 +154,14 @@ export class AppComponent implements OnInit {
     effect(() => { const fontName = this.fonts().find(f => f.family === this.selectedFont())?.name; if (fontName) this.loadFont(fontName); });
     effect((onCleanup) => { const projectState = { id: this.activeProjectId(), clips: this.clips(), captions: this.captions(), settings: this.getCurrentSettings() }; if (projectState.id && untracked(this.view) === 'editor') { const timeoutId = setTimeout(() => { this.saveActiveProject(); }, 1000); onCleanup(() => { clearTimeout(timeoutId); }); } }, { allowSignalWrites: true });
     effect(() => { const clip = this.activeClip(); if(clip) { this.setVideoInfo(clip.file, clip.originalDuration - clip.trimStart - clip.trimEnd); }});
+    effect(() => {
+        const player = this.videoPlayer();
+        if (player) {
+            // This is a simulation. Real vocal isolation is more complex.
+            // We lower the volume to help focus on spoken words.
+            player.nativeElement.volume = this.backgroundSoundOff() ? 0.4 : 1.0;
+        }
+    });
   }
 
   ngOnInit() { 
@@ -160,8 +169,8 @@ export class AppComponent implements OnInit {
     const voicePoints: number[] = [];
     const musicPoints: number[] = [];
     for (let i = 0; i < 100; i++) {
-        voicePoints.push(Math.sin(i / 3) * 40 + 50);
-        musicPoints.push(Math.cos(i / 5) * 35 + 45);
+        voicePoints.push(Math.random() * 30 + 40 + Math.sin(i / 5) * 15);
+        musicPoints.push(Math.random() * 20 + 30 + Math.cos(i/ 7) * 20);
     }
     this.voiceWaveform.set(voicePoints);
     this.musicWaveform.set(musicPoints);
@@ -255,6 +264,16 @@ export class AppComponent implements OnInit {
   trimClipStartAtPlayhead() { const video = this.videoPlayer()?.nativeElement; if(!video) return; this.clips.update(clips => { const currentClip = clips[this.activeClipIndex()]; if(!currentClip) return clips; const newTrimStart = currentClip.trimStart + video.currentTime; if(newTrimStart < currentClip.originalDuration - currentClip.trimEnd) { this.captions.update(caps => caps.map(c => c.clipId === currentClip.id ? {...c, startTime: c.startTime - video.currentTime, endTime: c.endTime - video.currentTime} : c).filter(c => c.endTime > 0)); currentClip.trimStart = newTrimStart; video.currentTime = 0; } return [...clips]; }); }
   trimClipEndAtPlayhead() { const video = this.videoPlayer()?.nativeElement; if(!video) return; this.clips.update(clips => { const currentClip = clips[this.activeClipIndex()]; if(!currentClip) return clips; const newTrimEnd = currentClip.originalDuration - (currentClip.trimStart + video.currentTime); if(newTrimEnd >= 0) { this.captions.update(caps => caps.filter(c => c.clipId !== currentClip.id || c.endTime <= video.currentTime)); currentClip.trimEnd = newTrimEnd; video.currentTime = 0; } return [...clips]; }); }
   
+  deleteClip(index: number) {
+    const clipToDelete = this.clips()[index];
+    if (!clipToDelete || this.clips().length <= 1) return;
+    this.clips.update(clips => clips.filter((_, i) => i !== index));
+    this.captions.update(captions => captions.filter(c => c.clipId !== clipToDelete.id));
+    if (this.activeClipIndex() >= index) {
+      this.activeClipIndex.update(i => Math.max(0, i - 1));
+    }
+  }
+
   startExport() { this.isExporting.set(true); this.exportProgress.set(0); this.exportTimeElapsed.set(0); const totalTime = 5000; const interval = 50; let elapsed = 0; this.exportInterval = setInterval(() => { elapsed += interval; this.exportTimeElapsed.set(elapsed / 1000); this.exportProgress.set(Math.min(100, (elapsed / totalTime) * 100)); if (elapsed >= totalTime) { clearInterval(this.exportInterval); setTimeout(() => { this.isExporting.set(false); this.isExportModalVisible.set(false); }, 1000); } }, interval); }
 
   setVideoInfo(file: File, duration: number) { const video = document.createElement('video'); video.preload = 'metadata'; video.src = URL.createObjectURL(file); video.onloadedmetadata = () => { const gcd = (a: number, b: number): number => b === 0 ? a : gcd(b, a % b); const r = gcd(video.videoWidth, video.videoHeight); this.videoInfo.set({ name: file.name, resolution: `${video.videoWidth}x${video.videoHeight}`, aspectRatio: `${video.videoWidth/r}:${video.videoHeight/r}`, duration: this.formatDuration(duration), size: this.formatFileSize(file.size) }); URL.revokeObjectURL(video.src); }; }
